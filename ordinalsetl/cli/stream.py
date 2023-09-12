@@ -32,11 +32,19 @@ def stream(last_synced_block_file, lag, provider_uri, output, start_block,
     from ordinalsetl.rpc.ord_rpc import OrdRpc
     from ordinalsetl.streaming.ord_streamer_adapter import OrdStreamerAdapter
     from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
+    from blockchainetl.jobs.exporters.google_pubsub_item_exporter import GooglePubSubItemExporter
+
+    item_exporter = ConsoleItemExporter()
+    if output is not None:
+        item_exporter = GooglePubSubItemExporter(
+            item_type_to_topic_mapping={
+                'inscription': output + '.inscriptions',
+            },
+            message_attributes=('item_id',))
 
     streamer_adapter = OrdStreamerAdapter(
         ord_rpc=ThreadLocalProxy(lambda: OrdRpc(provider_uri)),
-        # TODO: Add supoort for Google Pub/Sub exporting.
-        item_exporter=ConsoleItemExporter(),
+        item_exporter=item_exporter,
         batch_size=batch_size,
         max_workers=max_workers
     )
