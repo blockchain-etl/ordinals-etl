@@ -1,6 +1,7 @@
 import logging
 import json
 
+from ordinalsetl.streaming.ord_json_transformer import OrdJsonTransformer
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 
 
@@ -15,6 +16,7 @@ class OrdStreamerAdapter:
         self.item_exporter = item_exporter
         self.batch_size = batch_size
         self.max_workers = max_workers
+        self.transformer = OrdJsonTransformer()
 
     def open(self):
         self.item_exporter.open()
@@ -35,7 +37,8 @@ class OrdStreamerAdapter:
 
         for ins_id in inscriptions:
             ins_json = self.ord_rpc.get_inscription_by_id(ins_id)
-            self.item_exporter.export_item(ins_json)
+            formatted = self.transformer.format_inscription(ins_json)
+            self.item_exporter.export_item(formatted)
 
     def close(self):
         self.item_exporter.close()
